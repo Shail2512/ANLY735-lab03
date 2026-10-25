@@ -1,0 +1,207 @@
+---
+title: "Predictive AI Replication Laboratory #3"
+subtitle: "When the Test Environment Changes: A WILDS-Style Proxy Replication on ACS Income"
+author: "Shail Sanjaykumar Raval"
+date: today
+format:
+  html:
+    toc: true
+    embed-resources: true
+  docx:
+    toc: false
+bibliography: references.bib
+csl: apa.csl
+---
+
+# Study
+
+Article: WILDS: A Benchmark of in-the-Wild Distribution Shifts
+
+Authors: Koh, P. W., Sagawa, S., Marklund, H., Xie, S. M., Zhang, M., et al.
+
+DOI/URL: Proceedings of Machine Learning Research 139, 5637 to 5664, https://proceedings.mlr.press/v139/koh21a.html
+
+Replication Type: Proxy
+
+Computational Environment: Python 3.12 (scripted, CPU only)
+
+Primary Packages: scikit-learn 1.8.0, pandas 3.0.2, NumPy 2.5.3, Matplotlib 3.11.0
+
+Random Seed: 735
+
+Repository: https://github.com/Shail2512/ANLY735-lab03
+
+# 1. Replication Question and Research Claim
+
+Laboratory question: what happens to our conclusions when the model stays the same but the evaluation environment changes?
+
+Koh et al. (2021) argue that models evaluated on test data drawn from the same distribution as training look more reliable than they are, because real deployments meet naturally occurring shifts across hospitals, regions, times, and users [@koh2021wilds]. Their central methodological claim has two parts. First, performance measured in distribution overstates performance out of distribution. Second, to know whether the drop is caused by the shift and not by the new environment simply being harder, the out-of-distribution result should be compared with a model of the same kind trained on the target environment itself (their in-distribution reference). I test both parts.
+
+# 2. Replication Strategy
+
+This is a proxy replication. I do not rerun any WILDS dataset. I reproduce the logic of its comparison on a smaller, naturally shifted tabular task: same predictive task, same modeling pipeline, different evaluation environment.
+
+What is reproduced: the in-distribution versus shifted comparison, the target-trained reference, and a look beneath the average at subgroups (WILDS reports both average and worst-group results). What differs: the domain (census income rather than images, text, or molecules), the shift type (geographic, between two U.S. states), and the model (a gradient-boosted tree rather than a deep network). These differences are acceptable because the claim being tested is about evaluation design, not about any one architecture. Note on materials: I could not locate a starter repository for this lab in my course files, so the pipeline below was authored for this replication and follows the lab's workflow step by step.
+
+# 3. Data and Environments (Step 1)
+
+The data are the 2018 American Community Survey 1-year person files for California and Texas, downloaded directly from the Census Bureau by the script [@census2019pums]. I use the ACSIncome task definition from Ding et al. (2021), which was built as a modern replacement for the UCI Adult dataset and was designed so that models can be evaluated across states [@ding2021retiring].
+
+- Prediction target: whether a person's total income is above $50,000 (binary).
+- Predictors (10): age, class of worker, education level, marital status, occupation, place of birth, household relationship, usual weekly hours worked, sex, and race.
+- Inclusion filter (as in Ding et al.): age above 16, income above $100, works more than 0 hours a week, person weight at least 1.
+- Variable defining environments: state of residence.
+- Development environment: California, 195,665 workers. Split 80/20 (stratified, seed 735) into 156,532 training rows and 39,133 in-distribution test rows.
+- Shifted environment: Texas, 135,924 workers. Split 80/20 the same way. The 27,185 Texas test rows are the shifted evaluation set. The Texas training rows are used only to fit the reference model and for diagnostics, never for the main model.
+
+Obvious differences before modeling: 41.1 percent of California workers earn above $50,000 against 36.5 percent in Texas. The racial composition and place of birth mix differ substantially (see Section 7). The $50,000 line is a nominal dollar amount that is the same in both states, although wages and living costs are not.
+
+# 4. Method (Steps 2 and 3)
+
+One model is fit once and then frozen: scikit-learn's `HistGradientBoostingClassifier` with default settings and `random_state = 735`. Class of worker, marital status, household relationship, sex and race enter as categorical features. Occupation and place of birth have hundreds of codes and are kept as numeric codes; the Census numbers occupations in family blocks, so tree splits on code ranges group related jobs. No tuning is done on either environment, because the environment is the treatment and the model is held constant.
+
+Evaluation conditions:
+
+- In-distribution: the California model on the California test set.
+- Shifted: the same California model, unchanged, on the Texas test set.
+- Reference (from WILDS): the identical pipeline trained on Texas training rows and scored on the same Texas test set.
+
+Metrics chosen before looking at results: AUROC as the primary metric (does the model rank higher earners above lower earners), accuracy at a 0.5 threshold as the secondary metric (what a user of the yes or no output experiences), and calibration evidence through expected calibration error with 10 equal-width bins, the Brier score, and the gap between the mean predicted and observed share above $50,000 [@guo2017calibration]. False positive and false negative rates are reported because they show which direction the errors move. Uncertainty is shown with 200 bootstrap resamples of each test set.
+
+```bash
+# Reproduce everything (downloads about 115 MB of Census files on first run)
+python3 code/shift_experiment.py
+```
+
+# 5. Results: In-Distribution Versus Shifted (Steps 4 and 5)
+
+::: {#tbl-main}
+{{< include analysis/table_main.md >}}
+
+The California model in its own environment and in Texas, with the Texas-trained reference. Changes are shifted minus in-distribution, with 95 percent bootstrap intervals.
+:::
+
+In distribution, the model ranks workers well (AUROC 0.907) and is almost perfectly calibrated: it predicts that 40.9 percent of California test workers earn above $50,000 and 41.1 percent do, with an expected calibration error of 0.009. That number tells us that, for new California workers drawn from the same 2018 survey, a predicted 60 percent really means about 60 percent.
+
+In Texas, the same model's ranking is only slightly worse (AUROC 0.891, a drop of 0.016) and accuracy falls by 2.4 points. The calibration result is very different. Expected calibration error rises about eightfold, from 0.009 to 0.074. The model predicts that 43.9 percent of Texas workers earn above $50,000 when only 36.5 percent do, so it overstates the share by 7.4 points. That over-prediction shows up as errors in one direction: the false positive rate rises from 14.3 to 21.5 percent while the false negative rate falls.
+
+The reference model separates difficulty from shift. A model trained on Texas reaches AUROC 0.897 and accuracy 0.818 on Texas. So of the 0.016 AUROC drop, about 0.010 reflects Texas simply being a harder environment to rank, and only about 0.006 is lost because the model came from California. For calibration the picture reverses: the Texas-trained model has an expected calibration error of 0.010, the same as California in distribution, so nearly all of the 0.065 calibration loss is caused by the shift.
+
+The performance dimension that changes most is therefore calibration, not discrimination.
+
+![A: reliability curves for the California model. In California the curve sits on the diagonal; in Texas it sits below it at every level, meaning the model is too optimistic, and adjusting only for the lower Texas base rate closes less than half of the gap. B: accuracy by subgroup in each environment, with the Texas-trained reference marked by the black line.](figures/shift_result.png){#fig-shift}
+
+# 6. Looking Beneath the Average (Step 6)
+
+::: {#tbl-subgroups}
+{{< include analysis/table_subgroups.md >}}
+
+Subgroup results, written as California in-distribution / Texas shifted. Share above $50,000 is the observed rate.
+:::
+
+Groups did not degrade in the same way, and which group looks worst depends on the metric. Men lose the most accuracy (81.9 to 78.7 percent, which is also 1.6 points below the Texas reference), while women lose less accuracy (1.7 points) but suffer the worst calibration (expected calibration error 0.087, with predictions 8.7 points above the observed rate). For Asian workers accuracy and AUROC actually improve in Texas. For Black workers accuracy barely moves, but the false negative rate stays near 30 percent in both states, so roughly three in ten Black workers who do earn above $50,000 are missed whether or not the environment changes. The "Other" race group has the highest false negative rate in both states (42 then 38 percent). These are local failures that the overall table hides: an average accuracy drop of 2.4 points conceals a calibration error for women that is nearly nine times what it was in distribution, and a persistent miss rate for two groups that is unrelated to the shift.
+
+# 7. Diagnosis Before Any Fix (Step 7)
+
+I examined five possible explanations before considering any retraining.
+
+::: {#tbl-feature-shift}
+{{< include analysis/table_feature_shift.md >}}
+
+How much each predictor's distribution differs between the states. Standardized mean differences below 0.2 are usually treated as small; total variation distance runs from 0 (identical) to 1 (no overlap).
+:::
+
+Which predictors changed most. Most predictors barely move: age, education, sex and class of worker are almost identically distributed. Weekly hours are a little higher in Texas. The large shifts are race (total variation 0.21) and especially place of birth (0.61). Place of birth is a special case: 48 percent of California workers were born in California and 53 percent of Texas workers were born in Texas, so this feature partly encodes the environment itself, and the model has seen very few Texas-born workers during development.
+
+Whether outcome prevalence changed. Yes, from 41.1 to 36.5 percent. To test whether this alone explains the miscalibration, I rescaled the California model's odds by the change in base rate, the standard prior-shift correction, which uses only the Texas base rate and no Texas features or labels [@saerens2002adjusting]. Expected calibration error falls only from 0.074 to 0.048 and the model still over-predicts (41.3 against 36.5 percent). Measured against the in-distribution level of 0.009, prevalence change explains about 40 percent of the added calibration error, not most of it.
+
+Whether the relationship between predictors and outcome changed. This is the strongest explanation.
+
+::: {#tbl-education}
+{{< include analysis/table_education.md >}}
+
+The education to income relationship in each state.
+:::
+
+At every education level, Texas workers are 1 to 5 points less likely to earn above $50,000 than California workers with the same schooling (for graduate degrees, 72.3 against 77.0 percent). A simple logistic model fitted separately in each state on standardized education, hours and age gives almost the same slopes (education 1.23 against 1.18, hours 0.95 against 0.92, age 0.69 against 0.64) but a lower intercept in Texas (minus 0.93 against minus 0.63). In plain terms, the same characteristics rank people the same way in both states, but they lead to lower incomes in Texas. That pattern fits the results exactly: ranking travels (AUROC barely moves) and probability levels do not (calibration breaks).
+
+Whether measurement practices differ. The survey instrument, variable definitions and coding are the same in both states, which rules out the usual measurement explanation. However, the outcome is defined by a fixed nominal threshold of $50,000 that is not adjusted for regional wages or living costs. The label therefore measures something slightly different in each place. This is a construct issue in the target, not a data quality problem, and it is a likely driver of the intercept shift.
+
+Whether Texas contains observations poorly represented during development. A classifier trained to tell California rows from Texas rows reaches AUROC 0.91 with all features but only 0.70 without place of birth, so apart from birthplace the two workforces overlap substantially. Using the classifier without place of birth, 2.2 percent of Texas test rows (587 people) are confidently "not California-like." On those rows the model does much worse (AUROC 0.80, false negative rate 48 percent), but the other 97.8 percent still show an expected calibration error of 0.075. So unfamiliar rows produce a small, severe local failure, but they do not explain the overall miscalibration, which happens on familiar-looking workers.
+
+Summary of the diagnosis: the main cause is a shift in the outcome given the features (lower income at the same profile), partly reinforced by a lower base rate and a nominal threshold, with a small pocket of genuinely unfamiliar observations on top.
+
+# 8. Compare with the Original Study
+
+| Evidence | Claim in Koh et al. (2021) | This replication |
+|---|---|---|
+| In-distribution evaluation overstates shifted performance | Yes, often by large margins | Yes, but modestly for ranking (AUROC minus 0.016, accuracy minus 2.4 points) |
+| Gap persists against a target-trained reference | Yes, for most WILDS datasets | Small for ranking (AUROC 0.891 vs 0.897), large for calibration (ECE 0.074 vs 0.010) |
+| Average results hide group-level failures | Yes, worst-group results reported separately | Yes: worst calibration for women, persistent misses for Black and Other workers |
+
+The direction of the WILDS claim reproduces, and the reference model confirms that some of the loss is caused by the shift and not by Texas being harder. The size of the accuracy gap is much smaller than the dramatic drops reported for several WILDS datasets. I do not treat that as a contradiction. A two-state geographic shift in a well-measured national survey is a mild shift compared with, for example, new hospitals or new camera traps, and Ding et al. (2021) designed ACSIncome partly to show that results vary across states. The more important difference is where the gap appears. If I had reported only AUROC or accuracy, as many benchmark tables do, I would have concluded that the model travels well. The calibration evidence says it does not travel well as a probability estimator.
+
+# 9. Deployment Judgment (Step 8)
+
+- [ ] DEPLOY
+- [ ] DEPLOY WITH SAFEGUARDS
+- [x] REVALIDATE
+- [ ] DO NOT DEPLOY
+
+I choose to revalidate. The ranking evidence is strong enough that the model is not useless in Texas, so "do not deploy" would overstate the problem for any use that only needs an ordering of people. But any use that reads the predicted probability or the 0.5 decision, such as estimating how many residents qualify for an income-based program, would be wrong in a systematic direction: about 7 points too many people predicted above $50,000 and a false positive rate half again as high as in California. The diagnosis shows the cause is a shift in the outcome given the features, which a safeguard on inputs alone (such as an out-of-distribution flag) would not catch, because 97.8 percent of Texas workers look familiar. That makes "deploy with safeguards" unsafe as a default. Before use in Texas I would want calibration and error rates verified on labeled Texas data, followed by recalibration if they stay off, and an explicit check of subgroup miss rates.
+
+# 10. What the Experiment Does and Does Not Allow Us to Conclude
+
+It allows us to conclude that, for this task, a model built in California keeps most of its ranking ability in Texas, loses calibration substantially because of the shift, and degrades unevenly across sex and race groups. It also shows, in a concrete case, that the metric chosen decides whether a shift is visible at all.
+
+It does not allow us to conclude anything about other states, other years, or other model families. One shifted environment is a single draw, not a distribution of shifts. It does not show that the income gap between states is caused by cost of living; that is a plausible explanation, not a tested one. And it does not show that recalibration would fix the problem, since I deliberately did not retrain or recalibrate on Texas labels.
+
+# 11. Reproducibility Check
+
+- [x] Data source documented (public Census PUMS, downloaded by the script)
+- [x] Code runs from beginning to end (about 35 seconds on a laptop CPU after download)
+- [x] Computational environment identified
+- [x] Software and package versions documented (Section 13)
+- [x] Random seed documented (735, used for splits, the model, and bootstrap)
+- [x] Key preprocessing steps documented (ACSIncome filter, feature coding)
+- [x] Evaluation procedure documented (frozen model, two test sets, reference model, bootstrap)
+- [x] Repository README provides reproduction instructions
+
+Greatest reproducibility challenge. Three decisions changed the story and are easy for another researcher to make differently. First, the reference model: without it, the whole AUROC drop would have been read as caused by the shift, when most of it reflects a harder target. Second, place of birth: it makes the two states look almost completely separable (domain classifier AUROC 0.91), and a "poorly represented" analysis that keeps it flags over half of Texas, which is an artifact of the feature encoding the state. Excluding it from the representation check (but not from the model) gave the honest 2.2 percent. Third, the binning choice for expected calibration error; the Brier score and the predicted versus observed gap are reported alongside it so the calibration conclusion does not rest on one binning.
+
+# 12. Limitations and Extension
+
+Limitations. I studied one source and one target state in one year. The occupation and birthplace codes are treated as ordered numbers, which is a simplification. Calibration is measured on a single test split with bootstrap intervals, not across repeated splits. Survey weights are not used, so results describe the survey sample, not the state populations. The subgroup sizes for Asian (1,446) and Black (2,459) workers in Texas are large enough for accuracy but leave the calibration estimates for those groups noisier.
+
+Extension. The natural next step is to separate the two parts of the outcome shift and to test how much target evidence is needed to restore calibration. Concretely: (1) repeat the analysis with the $50,000 threshold adjusted by each state's regional price parity, to test whether the intercept shift is mostly a measurement artifact of a nominal threshold; and (2) recalibrate the frozen California model with Platt scaling on increasing amounts of labeled Texas data (for example 100, 500, 2,000 and 10,000 workers), measuring overall and subgroup calibration at each size. The first part tests a specific explanation from this lab. The second gives a practical answer to the deployment question, namely the minimum target validation sample that turns "revalidate" into "deploy with safeguards," and checks whether a recalibration that fixes the average also fixes calibration for women. Running both across all 50 states would turn one shift into a distribution of shifts, which is closer to the WILDS spirit.
+
+# Replication Verdict
+
+- [ ] Reproduced
+- [x] Partially Reproduced
+- [ ] Not Reproduced
+- [ ] Not Directly Comparable
+
+The core WILDS claim reproduces in direction: in-distribution evaluation overstated performance in the shifted environment, the target-trained reference showed that part of the loss is caused by the shift itself, and averages hid uneven subgroup degradation. I call it partially reproduced because the drop in the headline ranking and accuracy metrics was small, and most of the AUROC drop reflected a harder target rather than the shift. The large shift effect appeared in calibration, a dimension WILDS does not emphasize. The finding I would carry forward is that whether a model "generalizes" depends on which performance dimension the claim is about.
+
+# 13. Session Information
+
+::: {#tbl-session-info}
+{{< include analysis/session_info.md >}}
+
+Computational environment recorded by the script at run time.
+:::
+
+Reproduce with:
+
+```bash
+python3 code/shift_experiment.py      # downloads data, writes analysis/ and figures/
+quarto render replication-lab.qmd     # writes HTML and DOCX
+```
+
+AI use: Claude by Anthropic was used to help write and debug the analysis code and to draft the report. I reviewed the code, checked every reported number against the script output, and am responsible for the analytical decisions.
+
+# References
+
+::: {#refs}
+:::

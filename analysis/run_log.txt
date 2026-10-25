@@ -1,0 +1,208 @@
+{
+  "id_ca_model_on_ca": {
+    "n": 39133,
+    "auc": 0.9073,
+    "accuracy": 0.8261,
+    "brier": 0.121,
+    "ece": 0.0088,
+    "observed_rate": 0.4106,
+    "mean_pred": 0.4087,
+    "fnr": 0.2189,
+    "fpr": 0.1426,
+    "auc_ci": [
+      0.9043,
+      0.9101
+    ],
+    "accuracy_ci": [
+      0.8229,
+      0.8296
+    ],
+    "ece_ci": [
+      0.0079,
+      0.0132
+    ]
+  },
+  "ood_ca_model_on_tx": {
+    "n": 27185,
+    "auc": 0.891,
+    "accuracy": 0.8019,
+    "brier": 0.1362,
+    "ece": 0.0739,
+    "observed_rate": 0.3648,
+    "mean_pred": 0.4387,
+    "fnr": 0.1679,
+    "fpr": 0.2155,
+    "auc_ci": [
+      0.8871,
+      0.8946
+    ],
+    "accuracy_ci": [
+      0.7972,
+      0.8059
+    ],
+    "ece_ci": [
+      0.0697,
+      0.0785
+    ]
+  },
+  "ref_tx_model_on_tx": {
+    "n": 27185,
+    "auc": 0.8973,
+    "accuracy": 0.8179,
+    "brier": 0.1248,
+    "ece": 0.0104,
+    "observed_rate": 0.3648,
+    "mean_pred": 0.3681,
+    "fnr": 0.2642,
+    "fpr": 0.135,
+    "auc_ci": [
+      0.8934,
+      0.9004
+    ],
+    "accuracy_ci": [
+      0.8136,
+      0.8222
+    ],
+    "ece_ci": [
+      0.0088,
+      0.0154
+    ]
+  },
+  "shift_minus_id_ci": {
+    "auc": [
+      -0.0203,
+      -0.0114
+    ],
+    "accuracy": [
+      -0.0302,
+      -0.0181
+    ],
+    "ece": [
+      0.0588,
+      0.0689
+    ],
+    "brier": [
+      0.012,
+      0.0178
+    ]
+  },
+  "ood_label_shift_adjusted": {
+    "n": 27185,
+    "auc": 0.891,
+    "accuracy": 0.8076,
+    "brier": 0.1319,
+    "ece": 0.0481,
+    "observed_rate": 0.3648,
+    "mean_pred": 0.4129,
+    "fnr": 0.1966,
+    "fpr": 0.19
+  },
+  "place_of_birth_share": {
+    "California": {
+      "CA": 0.4827,
+      "TX": 0.0352
+    },
+    "Texas": {
+      "CA": 0.0128,
+      "TX": 0.5258
+    },
+    "Mexico": {
+      "CA": 0.1117,
+      "TX": 0.0921
+    },
+    "Philippines": {
+      "CA": 0.0298,
+      "TX": 0.0051
+    }
+  },
+  "domain_classifier_auc": 0.9118,
+  "domain_classifier_auc_without_pobp": 0.6963,
+  "tx_share_poorly_represented": 0.0216,
+  "ood_on_poorly_represented": {
+    "n": 587,
+    "auc": 0.8016,
+    "accuracy": 0.7649,
+    "brier": 0.1583,
+    "ece": 0.0531,
+    "observed_rate": 0.2743,
+    "mean_pred": 0.2993,
+    "fnr": 0.4783,
+    "fpr": 0.1432
+  },
+  "ood_on_well_represented": {
+    "n": 26598,
+    "auc": 0.8924,
+    "accuracy": 0.8027,
+    "brier": 0.1358,
+    "ece": 0.0749,
+    "observed_rate": 0.3668,
+    "mean_pred": 0.4417,
+    "fnr": 0.1628,
+    "fpr": 0.2173
+  },
+  "logistic_slopes_standardized": {
+    "CA": {
+      "SCHL": 1.229,
+      "WKHP": 0.952,
+      "AGEP": 0.685,
+      "intercept": -0.634
+    },
+    "TX": {
+      "SCHL": 1.179,
+      "WKHP": 0.915,
+      "AGEP": 0.642,
+      "intercept": -0.934
+    }
+  },
+  "sizes": {
+    "ca_all": 195665,
+    "tx_all": 135924,
+    "ca_train": 156532,
+    "ca_test": 39133,
+    "tx_train": 108739,
+    "tx_test": 27185
+  },
+  "base_rates": {
+    "CA": 0.4106,
+    "TX": 0.3648
+  },
+  "session": {
+    "python": "3.12.11",
+    "platform": "macOS-26.7.1-arm64-arm-64bit",
+    "numpy": "2.5.3",
+    "pandas": "3.0.2",
+    "scikit_learn": "1.8.0",
+    "matplotlib": "3.11.0",
+    "seed": 735,
+    "bootstrap_reps": 200
+  }
+}
+  variable   group   n_id  n_shift  rate_id  rate_shift  acc_id  acc_shift  acc_ref  auc_id  auc_shift  ece_id  ece_shift  pred_minus_obs_shift  fnr_id  fnr_shift
+0      sex    Male  20691    14379    0.467       0.441   0.819      0.787    0.803   0.904      0.880   0.012      0.062                 0.062   0.189      0.149
+1      sex  Female  18442    12806    0.347       0.280   0.835      0.818    0.835   0.908      0.896   0.010      0.087                 0.087   0.264      0.202
+2     race   White  24084    21130    0.447       0.387   0.822      0.797    0.813   0.906      0.888   0.011      0.075                 0.075   0.195      0.153
+3     race   Black   1729     2459    0.324       0.270   0.803      0.798    0.815   0.873      0.871   0.027      0.077                 0.077   0.305      0.291
+4     race   Asian   6579     1446    0.478       0.445   0.821      0.826    0.851   0.902      0.921   0.010      0.068                 0.066   0.184      0.096
+5     race   Other   6741     2150    0.238       0.199   0.850      0.833    0.851   0.896      0.872   0.013      0.068                 0.068   0.416      0.377
+  feature         type      CA      TX  shift                       measure
+0    AGEP      numeric  42.735  42.965  0.015  standardized mean difference
+1    SCHL      numeric  18.470  18.249 -0.058  standardized mean difference
+2    WKHP      numeric  37.867  39.593  0.132  standardized mean difference
+3     COW  categorical     NaN     NaN  0.038      total variation distance
+4     MAR  categorical     NaN     NaN  0.062      total variation distance
+5    RELP  categorical     NaN     NaN  0.070      total variation distance
+6     SEX  categorical     NaN     NaN  0.003      total variation distance
+7   RAC1P  categorical     NaN     NaN  0.209      total variation distance
+8    OCCP  categorical     NaN     NaN  0.114      total variation distance
+9    POBP  categorical     NaN     NaN  0.614      total variation distance
+  state          education  share  rate_over_50k
+0    CA         No diploma  0.112          0.120
+1    CA  HS / some college  0.421          0.263
+2    CA          Associate  0.080          0.401
+3    CA           Bachelor  0.238          0.587
+4    CA           Graduate  0.149          0.770
+5    TX         No diploma  0.116          0.114
+6    TX  HS / some college  0.467          0.241
+7    TX          Associate  0.076          0.374
+8    TX           Bachelor  0.219          0.558
+9    TX           Graduate  0.122          0.723

@@ -1,0 +1,11 @@
+feature,type,CA,TX,shift,measure
+AGEP,numeric,42.7349142667314,42.96485536034843,0.01534073453296088,standardized mean difference
+SCHL,numeric,18.470308946413514,18.249367293487538,-0.05770041748615055,standardized mean difference
+WKHP,numeric,37.86666496307464,39.59303728554192,0.13203563141556413,standardized mean difference
+COW,categorical,,,0.03771341878986784,total variation distance
+MAR,categorical,,,0.06152315179642707,total variation distance
+RELP,categorical,,,0.07002846003358336,total variation distance
+SEX,categorical,,,0.0033931561847444502,total variation distance
+RAC1P,categorical,,,0.20864267848619325,total variation distance
+OCCP,categorical,,,0.11415658715509977,total variation distance
+POBP,categorical,,,0.6136346090481494,total variation distance

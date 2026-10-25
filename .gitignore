@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Data (downloaded by code/shift_experiment.py)
+data/
+
+# OS
+.DS_Store
+
+# Quarto
+/.quarto/
+replication-lab_files/

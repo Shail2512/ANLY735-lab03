@@ -1,0 +1,179 @@
+{
+  "id_ca_model_on_ca": {
+    "n": 39133,
+    "auc": 0.9073,
+    "accuracy": 0.8261,
+    "brier": 0.121,
+    "ece": 0.0088,
+    "observed_rate": 0.4106,
+    "mean_pred": 0.4087,
+    "fnr": 0.2189,
+    "fpr": 0.1426,
+    "auc_ci": [
+      0.9043,
+      0.9101
+    ],
+    "accuracy_ci": [
+      0.8229,
+      0.8296
+    ],
+    "ece_ci": [
+      0.0079,
+      0.0132
+    ]
+  },
+  "ood_ca_model_on_tx": {
+    "n": 27185,
+    "auc": 0.891,
+    "accuracy": 0.8019,
+    "brier": 0.1362,
+    "ece": 0.0739,
+    "observed_rate": 0.3648,
+    "mean_pred": 0.4387,
+    "fnr": 0.1679,
+    "fpr": 0.2155,
+    "auc_ci": [
+      0.8871,
+      0.8946
+    ],
+    "accuracy_ci": [
+      0.7972,
+      0.8059
+    ],
+    "ece_ci": [
+      0.0697,
+      0.0785
+    ]
+  },
+  "ref_tx_model_on_tx": {
+    "n": 27185,
+    "auc": 0.8973,
+    "accuracy": 0.8179,
+    "brier": 0.1248,
+    "ece": 0.0104,
+    "observed_rate": 0.3648,
+    "mean_pred": 0.3681,
+    "fnr": 0.2642,
+    "fpr": 0.135,
+    "auc_ci": [
+      0.8934,
+      0.9004
+    ],
+    "accuracy_ci": [
+      0.8136,
+      0.8222
+    ],
+    "ece_ci": [
+      0.0088,
+      0.0154
+    ]
+  },
+  "shift_minus_id_ci": {
+    "auc": [
+      -0.0203,
+      -0.0114
+    ],
+    "accuracy": [
+      -0.0302,
+      -0.0181
+    ],
+    "ece": [
+      0.0588,
+      0.0689
+    ],
+    "brier": [
+      0.012,
+      0.0178
+    ]
+  },
+  "ood_label_shift_adjusted": {
+    "n": 27185,
+    "auc": 0.891,
+    "accuracy": 0.8076,
+    "brier": 0.1319,
+    "ece": 0.0481,
+    "observed_rate": 0.3648,
+    "mean_pred": 0.4129,
+    "fnr": 0.1966,
+    "fpr": 0.19
+  },
+  "place_of_birth_share": {
+    "California": {
+      "CA": 0.4827,
+      "TX": 0.0352
+    },
+    "Texas": {
+      "CA": 0.0128,
+      "TX": 0.5258
+    },
+    "Mexico": {
+      "CA": 0.1117,
+      "TX": 0.0921
+    },
+    "Philippines": {
+      "CA": 0.0298,
+      "TX": 0.0051
+    }
+  },
+  "domain_classifier_auc": 0.9118,
+  "domain_classifier_auc_without_pobp": 0.6963,
+  "tx_share_poorly_represented": 0.0216,
+  "ood_on_poorly_represented": {
+    "n": 587,
+    "auc": 0.8016,
+    "accuracy": 0.7649,
+    "brier": 0.1583,
+    "ece": 0.0531,
+    "observed_rate": 0.2743,
+    "mean_pred": 0.2993,
+    "fnr": 0.4783,
+    "fpr": 0.1432
+  },
+  "ood_on_well_represented": {
+    "n": 26598,
+    "auc": 0.8924,
+    "accuracy": 0.8027,
+    "brier": 0.1358,
+    "ece": 0.0749,
+    "observed_rate": 0.3668,
+    "mean_pred": 0.4417,
+    "fnr": 0.1628,
+    "fpr": 0.2173
+  },
+  "logistic_slopes_standardized": {
+    "CA": {
+      "SCHL": 1.229,
+      "WKHP": 0.952,
+      "AGEP": 0.685,
+      "intercept": -0.634
+    },
+    "TX": {
+      "SCHL": 1.179,
+      "WKHP": 0.915,
+      "AGEP": 0.642,
+      "intercept": -0.934
+    }
+  },
+  "sizes": {
+    "ca_all": 195665,
+    "tx_all": 135924,
+    "ca_train": 156532,
+    "ca_test": 39133,
+    "tx_train": 108739,
+    "tx_test": 27185
+  },
+  "base_rates": {
+    "CA": 0.4106,
+    "TX": 0.3648
+  },
+  "session": {
+    "python": "3.12.11",
+    "platform": "macOS-26.7.1-arm64-arm-64bit",
+    "numpy": "2.5.3",
+    "pandas": "3.0.2",
+    "scikit_learn": "1.8.0",
+    "matplotlib": "3.11.0",
+    "seed": 735,
+    "bootstrap_reps": 200
+  }
+}
